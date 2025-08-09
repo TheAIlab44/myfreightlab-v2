@@ -11,6 +11,12 @@
 [build.environment]
   # Node.js version for the build
   NODE_VERSION = "18"
+  
+  # Ignorer les variables VITE_ dans le scan de secrets (elles sont intentionnellement publiques)
+  SECRETS_SCAN_OMIT_KEYS = "VITE_N8N_BASE_URL,VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_URL"
+  
+  # Alternative : désactiver complètement le scan de secrets (décommentez si nécessaire)
+  # SECRETS_SCAN_ENABLED = "false"
 
 # Redirect rules for Single Page Application (SPA)
 [[redirects]]
