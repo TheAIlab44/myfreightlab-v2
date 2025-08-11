@@ -29,7 +29,30 @@
 .user-section {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+.files-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.files-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 .user-info {
@@ -79,7 +102,13 @@
   }
   
   .user-section {
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+  
+  .files-button {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
   }
   
   .user-info {

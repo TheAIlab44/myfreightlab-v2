@@ -7,10 +7,11 @@ interface HeaderProps {
     email: string;
   };
   onLogout?: () => void;
+  onOpenFiles?: () => void;
   showUserInfo?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, onLogout, showUserInfo = false }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogout, onOpenFiles, showUserInfo = false }) => {
   return (
     <header className="app-header">
       <div className="header-content">
@@ -24,6 +25,14 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, showUserInfo = false })
 
         {showUserInfo && user && (
           <div className="user-section">
+            <button 
+              onClick={onOpenFiles}
+              className="files-button"
+              title="Mes fichiers"
+            >
+              📁
+            </button>
+            
             <div className="user-info">
               <span className="user-name">{user.username}</span>
               <span className="user-email">{user.email}</span>

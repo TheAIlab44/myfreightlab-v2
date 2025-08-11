@@ -7,6 +7,7 @@ import './App.css';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
+  console.log('App user state:', user);
   const [isLoading, setIsLoading] = useState(true);
 
   // Restaurer la session au chargement de l'app

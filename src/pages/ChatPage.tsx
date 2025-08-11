@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Header from '../components/Header';
 import MessageList from '../components/MessageList';
 import MessageInput from '../components/MessageInput';
+import FilesPanel from '../components/FilesPanel';
 import { sendMessageApi } from '../api';
 import { AuthService } from '../services/authService';
 import type { Message, User } from '../types/api';
@@ -15,6 +16,7 @@ interface ChatPageProps {
 const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFilesPanelOpen, setIsFilesPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -72,6 +74,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     }
   };
 
+  const handleOpenFiles = () => {
+    setIsFilesPanelOpen(true);
+  };
+
+  const handleCloseFiles = () => {
+    setIsFilesPanelOpen(false);
+  };
+
   const handleLogout = async () => {
     try {
       await AuthService.logout();
@@ -87,6 +97,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       <Header 
         user={user}
         onLogout={handleLogout}
+        onOpenFiles={handleOpenFiles}
         showUserInfo={true}
       />
 
@@ -103,6 +114,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
           isLoading={isLoading}
         />
       </div>
+
+      <FilesPanel 
+        isOpen={isFilesPanelOpen}
+        onClose={handleCloseFiles}
+      />
     </div>
   );
 };
