@@ -1,4 +1,6 @@
 // Configuration et service pour n8n
+import type { Message } from '../../types/api';
+
 const n8nBaseUrl = import.meta.env.VITE_N8N_BASE_URL;
 
 if (!n8nBaseUrl) {
@@ -59,6 +61,24 @@ export interface N8nUploadResponse {
 export interface N8nDeleteResponse {
   success: boolean;
   error?: string;
+}
+
+// Types pour l'historique des messages
+interface RawHistoryMessage {
+  idx?: number;
+  id: number;
+  session_id: string;
+  message: string | ParsedMessageContent; // Peut être soit un JSON stringifié soit un objet direct
+  creation_date: string;
+}
+
+interface ParsedMessageContent {
+  type: "human" | "ai";
+  content: string;
+  additional_kwargs?: any;
+  response_metadata?: any;
+  tool_calls?: any[];
+  invalid_tool_calls?: any[];
 }
 
 // Service n8n pour l'envoi de messages
@@ -373,6 +393,76 @@ export class N8nService {
         success: false,
         error: error instanceof Error ? error.message : 'Erreur lors de la suppression du fichier'
       };
+    }
+  }
+
+  // Récupérer l'historique des messages
+  static async getChatHistory(): Promise<Message[]> {
+    try {
+      // Utiliser la même base URL que les autres endpoints
+      const historyUrl = `${n8nBaseUrl}/fd911ca2-8ca9-4a79-a6bb-d45886919fb9/chat/2/messages`;
+      console.log('N8n getChatHistory URL:', historyUrl);
+      
+      const response = await fetch(historyUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`N8n getChatHistory: HTTP error! status: ${response.status}`);
+        return [];
+      }
+
+      const rawHistory: RawHistoryMessage[] = await response.json();
+      
+      if (!Array.isArray(rawHistory)) {
+        console.warn('N8n getChatHistory: Response is not an array');
+        return [];
+      }
+
+      // Transformer les données brutes en format Message
+      const messages: Message[] = rawHistory.map((rawMessage) => {
+        try {
+          let parsedContent: ParsedMessageContent;
+          
+          // Vérifier si message est déjà un objet ou une string JSON
+          if (typeof rawMessage.message === 'string') {
+            // Cas ancien : JSON stringifié
+            parsedContent = JSON.parse(rawMessage.message);
+          } else {
+            // Cas nouveau : objet direct
+            parsedContent = rawMessage.message;
+          }
+          
+          return {
+            id: `history-${rawMessage.id}`,
+            content: parsedContent.content,
+            timestamp: new Date(rawMessage.creation_date),
+            isUser: parsedContent.type === "human"
+          };
+        } catch (parseError) {
+          console.error('N8n getChatHistory: Error parsing message:', parseError, rawMessage);
+          // Retourner un message d'erreur plutôt que de faire planter l'app
+          return {
+            id: `error-${rawMessage.id}`,
+            content: '[Message non lisible]',
+            timestamp: new Date(rawMessage.creation_date),
+            isUser: false
+          };
+        }
+      });
+
+      // Trier par ordre chronologique (plus ancien en premier)
+      messages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      
+      console.log(`N8n getChatHistory: Loaded ${messages.length} messages`);
+      return messages;
+
+    } catch (error) {
+      console.error('N8n getChatHistory error:', error);
+      return []; // Retourner un tableau vide en cas d'erreur
     }
   }
 }

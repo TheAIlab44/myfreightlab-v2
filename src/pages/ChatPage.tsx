@@ -4,6 +4,7 @@ import MessageList from '../components/MessageList';
 import MessageInput from '../components/MessageInput';
 import FilesPanel from '../components/FilesPanel';
 import { sendMessageApi } from '../api';
+import { N8nService } from '../api/services/n8nService';
 import { AuthService } from '../services/authService';
 import type { Message, User } from '../types/api';
 import './ChatPage.css';
@@ -16,8 +17,27 @@ interface ChatPageProps {
 const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isFilesPanelOpen, setIsFilesPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Charger l'historique des messages au montage
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        setIsLoadingHistory(true);
+        const history = await N8nService.getChatHistory();
+        setMessages(history);
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'historique:', error);
+        // Ne pas afficher d'erreur à l'utilisateur, juste continuer sans historique
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadChatHistory();
+  }, []); // Se déclenche une seule fois au montage
 
   const scrollToBottom = () => {
     // Petit délai pour s'assurer que le DOM est mis à jour
@@ -104,7 +124,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       <div className="chat-content">
         <MessageList 
           messages={messages}
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingHistory}
           username={user.username}
           messagesEndRef={messagesEndRef}
         />
